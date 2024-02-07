@@ -22,5 +22,8 @@
     "prettier": "^3.2.5",
     "tsx": "^4.7.0",
     "typescript": "*"
+  },
+  "dependencies": {
+    "fastify": "^4.26.0"
   }
 }
