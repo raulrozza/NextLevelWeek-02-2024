@@ -23,6 +23,7 @@
                 "trailingComma": "all",
                 "arrowParens": "avoid"
             }
-        ]
+        ],
+        "@typescript-eslint/explicit-function-return-type": "off"
     }
 }
