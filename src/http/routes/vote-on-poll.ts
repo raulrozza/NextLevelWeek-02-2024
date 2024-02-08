@@ -7,6 +7,7 @@ import { prisma } from '../../lib/prisma';
 import z from 'zod';
 import { randomUUID } from 'crypto';
 import { redis } from '../../lib/redis';
+import { voting } from '../utils/voting-pub-sub';
 
 const paramsSchema = z.object({
   pollId: z.string().uuid(),
@@ -40,7 +41,11 @@ export async function voteOnPoll(app: FastifyInstance) {
 
     if (previousVote) {
       await prisma.vote.delete({ where: { id: previousVote.id } });
-      await redis.zincrby(pollId, -1, previousVote.pollOptionId);
+      const votes = await redis.zincrby(pollId, -1, previousVote.pollOptionId);
+      voting.publish(pollId, {
+        pollOptionId: previousVote.pollOptionId,
+        votes: Number(votes),
+      });
     }
 
     await prisma.vote.create({
@@ -51,7 +56,9 @@ export async function voteOnPoll(app: FastifyInstance) {
       },
     });
 
-    await redis.zincrby(pollId, 1, pollOptionId);
+    const votes = await redis.zincrby(pollId, 1, pollOptionId);
+
+    voting.publish(pollId, { pollOptionId, votes: Number(votes) });
 
     return reply.status(201).send();
   });
