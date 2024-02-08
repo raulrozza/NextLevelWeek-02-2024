@@ -6,6 +6,7 @@ import {
 import { prisma } from '../../lib/prisma';
 import z from 'zod';
 import { randomUUID } from 'crypto';
+import { redis } from '../../lib/redis';
 
 const paramsSchema = z.object({
   pollId: z.string().uuid(),
@@ -48,6 +49,8 @@ export async function voteOnPoll(app: FastifyInstance) {
         sessionId,
       },
     });
+
+    await redis.zincrby(pollId, 1, pollOptionId);
 
     return reply.status(201).send();
   });
