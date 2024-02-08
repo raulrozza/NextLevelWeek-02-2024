@@ -40,6 +40,7 @@ export async function voteOnPoll(app: FastifyInstance) {
 
     if (previousVote) {
       await prisma.vote.delete({ where: { id: previousVote.id } });
+      await redis.zincrby(pollId, -1, previousVote.pollOptionId);
     }
 
     await prisma.vote.create({
